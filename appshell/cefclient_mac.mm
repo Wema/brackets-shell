@@ -26,6 +26,9 @@
 #include "TrafficLightsViewController.h"
 #include "client_colors_mac.h"
 
+#include "FullScreenView.h"
+#include "FullScreenViewController.h"
+
 
 // Application startup time
 CFTimeInterval g_appStartupTime;
@@ -473,10 +476,12 @@ Class GetShellWindowFrameClass() {
                        backing:NSBackingStoreBuffered
                        defer:NO];
 
+  NSWindow* theWin = mainWnd;
+  NSButton *windowButton;
+    
 #ifdef CUSTOM_TRAFFIC_LIGHTS
   //hide buttons
-  NSWindow* theWin = mainWnd;
-  NSButton *windowButton = [theWin standardWindowButton:NSWindowCloseButton];
+  windowButton = [theWin standardWindowButton:NSWindowCloseButton];
   [windowButton setHidden:YES];
   windowButton = [theWin standardWindowButton:NSWindowMiniaturizeButton];
   [windowButton setHidden:YES];
@@ -484,6 +489,7 @@ Class GetShellWindowFrameClass() {
   [windowButton setHidden:YES];
 #endif
 
+    
     
   NSColorSpace *sRGB = [NSColorSpace sRGBColorSpace];
   float fillComp[4] = {0.23137255f, 0.24705882f, 0.25490196f, 1.0};
@@ -511,6 +517,10 @@ Class GetShellWindowFrameClass() {
   [mainWnd setDelegate:delegate];
   [mainWnd setCollectionBehavior: (1 << 7) /* NSWindowCollectionBehaviorFullScreenPrimary */];
 
+#ifdef DARK_UI
+ 
+#endif
+    
   // Rely on the window delegate to clean us up rather than immediately
   // releasing when the window gets closed. We use the delegate to do
   // everything from the autorelease pool so the window isn't on the stack
@@ -521,6 +531,8 @@ Class GetShellWindowFrameClass() {
 #ifdef DARK_UI
   // Register our custom title bar rendering hook.
   [self addCustomDrawHook:contentView];
+  windowButton = [theWin standardWindowButton:NSWindowFullScreenButton];
+  [windowButton setHidden:YES];
 #endif
 
     
@@ -549,22 +561,38 @@ Class GetShellWindowFrameClass() {
   CefBrowserHost::CreateBrowserSync(window_info, g_handler.get(),
                                 [str UTF8String], settings);
 
+    NSView  *themeView = [[mainWnd contentView] superview];
+    NSRect  parentFrame = [themeView frame];
+
 #ifdef CUSTOM_TRAFFIC_LIGHTS
-  NSView                          *themeView = [[mainWnd contentView] superview];
-  TrafficLightsViewController     *controller = [[TrafficLightsViewController alloc] init];
-  if ([NSBundle loadNibNamed: @"TrafficLights" owner: controller])
+  TrafficLightsViewController     *tvController = [[TrafficLightsViewController alloc] init];
+  if ([NSBundle loadNibNamed: @"TrafficLights" owner: tvController])
   {
-      NSRect  parentFrame = [themeView frame];
-      NSRect  oldFrame = [controller.view frame];
+      NSRect  oldFrame = [tvController.view frame];
       NSRect newFrame = NSMakeRect(kTrafficLightsViewX,	// x position
                                    parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
                                    oldFrame.size.width,                                  // width
                                    oldFrame.size.height);                                // height
-      [controller.view setFrame:newFrame];
-      [themeView addSubview:controller.view];
+      [tvController.view setFrame:newFrame];
+      [themeView addSubview:tvController.view];
   }
 
 #endif 
+
+#ifdef DARK_UI
+    FullScreenViewController     *fsController = [[FullScreenViewController alloc] init];
+    if ([NSBundle loadNibNamed: @"FullScreen" owner: fsController])
+    {
+        NSRect oldFrame = [fsController.view frame];
+        NSRect newFrame = NSMakeRect(kTrafficLightsViewX,	// x position
+                                     parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
+                                     oldFrame.size.width,                                  // width
+                                     oldFrame.size.height);                                // height
+        [fsController.view setFrame:newFrame];
+        [themeView addSubview:fsController.view];
+    }
+#endif
+    
     
    // Show the window.
   [mainWnd display];

@@ -20,9 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-#import "TrafficLightsView.h"
+#import "FullScreenView.h"
 
-@implementation TrafficLightsView
+
+@implementation FullScreenView
 
 - (id)initWithFrame:(NSRect)frame {
     return [super initWithFrame:frame];
@@ -33,13 +34,6 @@
                     owner:self
                  userData:nil
              assumeInside:NO];
-}
-
-- (void)mouseEntered:(NSEvent *)theEvent {
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"TrafficLightsMouseEnter" object:self];
-}
-- (void)mouseExited:(NSEvent *)theEvent {
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"TrafficLightsMouseExit" object:self];
 }
 
 @end

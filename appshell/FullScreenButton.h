@@ -20,26 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-#import "TrafficLightsView.h"
+#import <Cocoa/Cocoa.h>
 
-@implementation TrafficLightsView
-
-- (id)initWithFrame:(NSRect)frame {
-    return [super initWithFrame:frame];
+@interface FullScreenButton : NSButton {
+    
+    NSImage *inactive;
+    NSImage *active;
+    NSImage *hover;
+    NSImage *press;
+    
+    BOOL activeState;
+    BOOL hoverState;
+    BOOL pressedState;
 }
-
-- (void)viewDidMoveToWindow {
-    [self addTrackingRect:[self bounds]
-                    owner:self
-                 userData:nil
-             assumeInside:NO];
-}
-
-- (void)mouseEntered:(NSEvent *)theEvent {
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"TrafficLightsMouseEnter" object:self];
-}
-- (void)mouseExited:(NSEvent *)theEvent {
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"TrafficLightsMouseExit" object:self];
-}
-
 @end
