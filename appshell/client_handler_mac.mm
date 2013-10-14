@@ -12,8 +12,14 @@
 
 #include "TrafficLightsView.h"
 #include "TrafficLightsViewController.h"
+
+#include "FullScreenView.h"
+#include "FullScreenViewController.h"
+
 #include "config.h"
 #include "client_colors_mac.h"
+
+
 
 extern CefRefPtr<ClientHandler> g_handler;
 
@@ -271,12 +277,13 @@ Class GetPopuplWindowFrameClass() {
     [savedTitle release];
 #endif
     
-NSView * themeView = [[window contentView] superview];
+    NSView * themeView = [[window contentView] superview];
+    NSRect  parentFrame = [themeView frame];
+    NSWindow* theWin = window;
+    NSButton *windowButton = [theWin standardWindowButton:NSWindowCloseButton];
     
 #ifdef CUSTOM_TRAFFIC_LIGHTS
     //hide buttons
-    NSWindow* theWin = window;
-    NSButton *windowButton = [theWin standardWindowButton:NSWindowCloseButton];
     [windowButton setHidden:YES];
     windowButton = [theWin standardWindowButton:NSWindowMiniaturizeButton];
     [windowButton setHidden:YES];
@@ -287,7 +294,6 @@ NSView * themeView = [[window contentView] superview];
     
     if ([NSBundle loadNibNamed: @"TrafficLights" owner: controller])
     {
-        NSRect  parentFrame = [themeView frame];
         NSRect  oldFrame = [controller.view frame];
         NSRect newFrame = NSMakeRect(kTrafficLightsViewX,	// x position
                                      parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
@@ -297,6 +303,21 @@ NSView * themeView = [[window contentView] superview];
         [themeView addSubview:controller.view];
     }
 #endif
+    
+    windowButton = [theWin standardWindowButton:NSWindowFullScreenButton];
+    [windowButton setHidden:YES];
+    
+    FullScreenViewController     *fsController = [[FullScreenViewController alloc] init];
+    if ([NSBundle loadNibNamed: @"FullScreen" owner: fsController])
+    {
+        NSRect oldFrame = [fsController.view frame];
+        NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
+                                     parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
+                                     oldFrame.size.width,                                  // width
+                                     oldFrame.size.height);                                // height
+        [fsController.view setFrame:newFrame];
+        [themeView addSubview:fsController.view];
+    }
     
     [themeView setNeedsDisplay:YES];
 }
@@ -387,10 +408,13 @@ void ClientHandler::PopupCreated(CefRefPtr<CefBrowser> browser) {
 
       NSWindow* theWin = window;
       NSView*   themeView = [[window contentView] superview];
-      
-#ifdef CUSTOM_TRAFFIC_LIGHTS
+      NSRect    parentFrame = [themeView frame];
+
       //hide buttons
       NSButton *windowButton = [theWin standardWindowButton:NSWindowCloseButton];
+      
+#ifdef CUSTOM_TRAFFIC_LIGHTS
+      
       [windowButton setHidden:YES];
       windowButton = [theWin standardWindowButton:NSWindowMiniaturizeButton];
       [windowButton setHidden:YES];
@@ -401,7 +425,6 @@ void ClientHandler::PopupCreated(CefRefPtr<CefBrowser> browser) {
       
       if ([NSBundle loadNibNamed: @"TrafficLights" owner: controller])
       {
-          NSRect  parentFrame = [themeView frame];
           NSRect  oldFrame = [controller.view frame];
           NSRect newFrame = NSMakeRect(kTrafficLightsViewX,	// x position
                                        parentFrame.size.height - oldFrame.size.height - 4,   // y position
@@ -409,6 +432,23 @@ void ClientHandler::PopupCreated(CefRefPtr<CefBrowser> browser) {
                                        oldFrame.size.height);                                // height
           [controller.view setFrame:newFrame];
           [themeView addSubview:controller.view];
+      }
+#endif
+      
+#ifdef DARK_UI
+      windowButton = [theWin standardWindowButton:NSWindowFullScreenButton];
+      [windowButton setHidden:YES];
+      
+      FullScreenViewController     *fsController = [[FullScreenViewController alloc] init];
+      if ([NSBundle loadNibNamed: @"FullScreen" owner: fsController])
+      {
+          NSRect oldFrame = [fsController.view frame];
+          NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
+                                       parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
+                                       oldFrame.size.width,                                  // width
+                                       oldFrame.size.height);                                // height
+          [fsController.view setFrame:newFrame];
+          [themeView addSubview:fsController.view];
       }
 #endif
 

@@ -584,7 +584,7 @@ Class GetShellWindowFrameClass() {
     if ([NSBundle loadNibNamed: @"FullScreen" owner: fsController])
     {
         NSRect oldFrame = [fsController.view frame];
-        NSRect newFrame = NSMakeRect(kTrafficLightsViewX,	// x position
+        NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
                                      parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
                                      oldFrame.size.width,                                  // width
                                      oldFrame.size.height);                                // height
