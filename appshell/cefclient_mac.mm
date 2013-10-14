@@ -568,7 +568,7 @@ Class GetShellWindowFrameClass() {
   TrafficLightsViewController     *tvController = [[TrafficLightsViewController alloc] init];
   if ([NSBundle loadNibNamed: @"TrafficLights" owner: tvController])
   {
-      NSRect  oldFrame = [tvController.view frame];
+      NSRect oldFrame = [tvController.view frame];
       NSRect newFrame = NSMakeRect(kTrafficLightsViewX,	// x position
                                    parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
                                    oldFrame.size.width,                                  // width
