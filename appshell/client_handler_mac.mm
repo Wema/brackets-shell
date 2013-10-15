@@ -102,6 +102,7 @@ void ClientHandler::CloseMainWindow() {
 @interface PopupClientWindowDelegate : NSObject <NSWindowDelegate> {
   CefRefPtr<ClientHandler> clientHandler;
   NSWindow* window;
+  NSView* fullScreenButtonView;
   BOOL isReallyClosing;
   NSString* savedTitle;
 }
@@ -111,6 +112,7 @@ void ClientHandler::CloseMainWindow() {
 - (BOOL)windowShouldClose:(id)window;
 - (void)setClientHandler:(CefRefPtr<ClientHandler>)handler;
 - (void)setWindow:(NSWindow*)window;
+- (void)setFullScreenButtonView:(NSView*)view;
 - (void)addCustomDrawHook:(NSView*)contentView;
 @end
 
@@ -181,6 +183,7 @@ Class GetPopuplWindowFrameClass() {
   [super init];
   isReallyClosing = false;
   savedTitle = nil;
+  fullScreenButtonView = nil;
   return self;
 }
 
@@ -206,6 +209,24 @@ Class GetPopuplWindowFrameClass() {
   clientHandler->DispatchCloseToNextBrowser();
 }
 
+
+-(void)windowDidResize:(NSNotification *)notification 
+{
+#ifdef DARK_UI
+    NSView* themeView = [[window contentView] superview];
+    NSRect  parentFrame = [themeView frame];
+    
+    NSRect oldFrame = [fullScreenButtonView frame];
+    NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
+                                 parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
+                                 oldFrame.size.width,                                  // width
+                                 oldFrame.size.height);
+    
+    
+   [fullScreenButtonView setFrame:newFrame];
+   [themeView setNeedsDisplay:YES];
+#endif
+}
 
 - (void)addCustomDrawHook:(NSView*)contentView
 {
@@ -255,6 +276,11 @@ Class GetPopuplWindowFrameClass() {
   isReallyClosing = true;
 }
 
+
+- (void)setFullScreenButtonView:(NSView *)view {
+  fullScreenButtonView = view;
+}
+
 -(void)windowTitleDidChange:(NSString*)title {
 #ifdef DARK_UI
     savedTitle = [title copy];
@@ -280,10 +306,11 @@ Class GetPopuplWindowFrameClass() {
     NSView * themeView = [[window contentView] superview];
     NSRect  parentFrame = [themeView frame];
     NSWindow* theWin = window;
-    NSButton *windowButton = [theWin standardWindowButton:NSWindowCloseButton];
+    NSButton *windowButton = nil;
     
 #ifdef CUSTOM_TRAFFIC_LIGHTS
     //hide buttons
+    windowButton = [theWin standardWindowButton:NSWindowCloseButton];
     [windowButton setHidden:YES];
     windowButton = [theWin standardWindowButton:NSWindowMiniaturizeButton];
     [windowButton setHidden:YES];
@@ -304,6 +331,7 @@ Class GetPopuplWindowFrameClass() {
     }
 #endif
     
+#ifdef DARK_UI
     windowButton = [theWin standardWindowButton:NSWindowFullScreenButton];
     [windowButton setHidden:YES];
     
@@ -317,7 +345,9 @@ Class GetPopuplWindowFrameClass() {
                                      oldFrame.size.height);                                // height
         [fsController.view setFrame:newFrame];
         [themeView addSubview:fsController.view];
+        [self setFullScreenButtonView:fsController.view];
     }
+#endif
     
     [themeView setNeedsDisplay:YES];
 }
@@ -409,12 +439,10 @@ void ClientHandler::PopupCreated(CefRefPtr<CefBrowser> browser) {
       NSWindow* theWin = window;
       NSView*   themeView = [[window contentView] superview];
       NSRect    parentFrame = [themeView frame];
-
-      //hide buttons
-      NSButton *windowButton = [theWin standardWindowButton:NSWindowCloseButton];
+      NSButton* windowButton = nil;
       
 #ifdef CUSTOM_TRAFFIC_LIGHTS
-      
+      windowButton = [theWin standardWindowButton:NSWindowCloseButton];
       [windowButton setHidden:YES];
       windowButton = [theWin standardWindowButton:NSWindowMiniaturizeButton];
       [windowButton setHidden:YES];
@@ -449,6 +477,7 @@ void ClientHandler::PopupCreated(CefRefPtr<CefBrowser> browser) {
                                        oldFrame.size.height);                                // height
           [fsController.view setFrame:newFrame];
           [themeView addSubview:fsController.view];
+          [delegate setFullScreenButtonView:fsController.view];
       }
 #endif
 
