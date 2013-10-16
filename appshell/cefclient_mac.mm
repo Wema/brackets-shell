@@ -330,16 +330,65 @@ Class GetShellWindowFrameClass() {
 
 
 - (void)windowDidExitFullScreen:(NSNotification *)notification {
-#ifdef DARK_UI
     NSWindow* window = [notification object];
     NSView* contentView = [window contentView];
     NSView* themeView = [[window contentView] superview];
+#ifdef DARK_UI
     [self addCustomDrawHook: contentView];
     [window setTitle:savedTitle];
     [savedTitle release];
-    [themeView setNeedsDisplay:YES];    
+    [themeView setNeedsDisplay:YES];
 #endif
+    
+    
+    NSWindow* theWin = window;
+    NSRect  parentFrame = [themeView frame];
+    NSButton *windowButton = nil;
+    
+#ifdef CUSTOM_TRAFFIC_LIGHTS
+    //hide buttons
+    windowButton = [theWin standardWindowButton:NSWindowCloseButton];
+    [windowButton setHidden:YES];
+    windowButton = [theWin standardWindowButton:NSWindowMiniaturizeButton];
+    [windowButton setHidden:YES];
+    windowButton = [theWin standardWindowButton:NSWindowZoomButton];
+    [windowButton setHidden:YES];
+    
+    TrafficLightsViewController     *controller = [[TrafficLightsViewController alloc] init];
+    
+    if ([NSBundle loadNibNamed: @"TrafficLights" owner: controller])
+    {
+        NSRect  oldFrame = [controller.view frame];
+        NSRect newFrame = NSMakeRect(kTrafficLightsViewX,	// x position
+                                     parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
+                                     oldFrame.size.width,                                  // width
+                                     oldFrame.size.height);                                // height
+        [controller.view setFrame:newFrame];
+        [themeView addSubview:controller.view];
+    }
+#endif
+    
+#ifdef DARK_UI
+    windowButton = [theWin standardWindowButton:NSWindowFullScreenButton];
+    [windowButton setHidden:YES];
+    
+    FullScreenViewController     *fsController = [[FullScreenViewController alloc] init];
+    if ([NSBundle loadNibNamed: @"FullScreen" owner: fsController])
+    {
+        NSRect oldFrame = [fsController.view frame];
+        NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
+                                     parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
+                                     oldFrame.size.width,                                  // width
+                                     oldFrame.size.height);                                // height
+        [fsController.view setFrame:newFrame];
+        [themeView addSubview:fsController.view];
+        [self setFullScreenButtonView:fsController.view];
+    }
+#endif
+    
+    [themeView setNeedsDisplay:YES];
 }
+
 
 
 - (void)alert:(NSString*)title withMessage:(NSString*)message {
