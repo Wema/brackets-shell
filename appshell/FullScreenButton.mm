@@ -74,6 +74,16 @@ static const int FULLSCREEN_BUTTON_TAG = 1004;
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updateActiveState)
                                                  name:NSWindowDidResignKeyNotification object:[self window]];
+    
+    
+    NSTrackingAreaOptions focusTrackingAreaOptions = NSTrackingActiveInActiveApp;
+    focusTrackingAreaOptions |= NSTrackingMouseEnteredAndExited;
+    focusTrackingAreaOptions |= NSTrackingAssumeInside;
+    focusTrackingAreaOptions |= NSTrackingInVisibleRect;
+        
+    NSTrackingArea *focusTrackingArea = [[NSTrackingArea alloc] initWithRect:NSZeroRect
+                                                                         options:focusTrackingAreaOptions owner:self userInfo:nil];
+    [self addTrackingArea:focusTrackingArea];
 }
 
 - (void)mouseDown:(NSEvent *)theEvent {
@@ -97,11 +107,13 @@ static const int FULLSCREEN_BUTTON_TAG = 1004;
 - (void)mouseEntered:(NSEvent *)theEvent {
     pressedState = NO;
     hoverState = YES;
+    [self updateButtonStates];
     [super mouseEntered:theEvent];
 }
 - (void)mouseExited:(NSEvent *)theEvent {
     pressedState = NO;
     hoverState = NO;
+    [self updateButtonStates];
     [super mouseEntered:theEvent];
 }
 

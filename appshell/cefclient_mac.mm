@@ -205,6 +205,7 @@ Class GetShellWindowFrameClass() {
 @interface ClientWindowDelegate : NSObject <NSWindowDelegate> {
   BOOL isReallyClosing;
   NSString* savedTitle;
+  NSView* fullScreenButtonView;
 }
 - (void)setIsReallyClosing;
 - (IBAction)handleMenuAction:(id)sender;
@@ -215,6 +216,7 @@ Class GetShellWindowFrameClass() {
 - (void)notifyConsoleMessage:(id)object;
 - (void)notifyDownloadComplete:(id)object;
 - (void)notifyDownloadError:(id)object;
+- (void)setFullScreenButtonView:(NSView*)view;
 - (void)addCustomDrawHook:(NSView*)contentView;
 @end
 
@@ -268,6 +270,10 @@ Class GetShellWindowFrameClass() {
 }
 
 
+- (void)setFullScreenButtonView:(NSView *)view {
+    fullScreenButtonView = view;
+}
+
 - (void)addCustomDrawHook:(NSView*)contentView
 {
     NSView* themeView = [contentView superview];
@@ -299,6 +305,26 @@ Class GetShellWindowFrameClass() {
     NSWindow* window = [notification object];
     savedTitle = [[window title] copy];
     [window setTitle:@""];
+#endif
+}
+
+
+-(void)windowDidResize:(NSNotification *)notification
+{
+#ifdef DARK_UI
+    NSWindow* window = [notification object];
+    NSView* themeView = [[window contentView] superview];
+    NSRect  parentFrame = [themeView frame];
+    
+    NSRect oldFrame = [fullScreenButtonView frame];
+    NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
+                                 parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
+                                 oldFrame.size.width,                                  // width
+                                 oldFrame.size.height);
+    
+    
+    [fullScreenButtonView setFrame:newFrame];
+    [themeView setNeedsDisplay:YES];
 #endif
 }
 
@@ -590,6 +616,7 @@ Class GetShellWindowFrameClass() {
                                      oldFrame.size.height);                                // height
         [fsController.view setFrame:newFrame];
         [themeView addSubview:fsController.view];
+        [delegate setFullScreenButtonView:fsController.view];
     }
 #endif
     
