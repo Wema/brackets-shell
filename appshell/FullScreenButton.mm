@@ -29,7 +29,7 @@ static const int FULLSCREEN_BUTTON_TAG = 1004;
     NSImage *inactive;
     NSImage *active;
     NSImage *hover;
-    NSImage *press;
+    NSImage *pressed;
     BOOL activeState;
     BOOL hoverState;
     BOOL pressedState;
@@ -55,7 +55,7 @@ static const int FULLSCREEN_BUTTON_TAG = 1004;
     active = [NSImage imageNamed:@"window-fullscreen-active"];
     inactive = [NSImage imageNamed:@"window-fullscreen-inactive"];
     hover = [NSImage imageNamed:@"window-fullscreen-hover"];
-    press = [NSImage imageNamed:@"window-fullscreen-pressed"];
+    pressed = [NSImage imageNamed:@"window-fullscreen-pressed"];
    
     // assume active
     activeState = YES;
@@ -94,15 +94,16 @@ static const int FULLSCREEN_BUTTON_TAG = 1004;
         [self.window makeKeyAndOrderFront:self];
         [self.window setOrderedIndex:0];
     }
-    [[self window] toggleFullScreen:self];
+    [self updateButtonStates];
 }
+
 
 - (void)mouseUp:(NSEvent *)theEvent {
     pressedState = NO;
-    hoverState = YES;
-    [super mouseUp:theEvent];
+    hoverState = NO;
+    [self updateButtonStates];
+    [[self window] toggleFullScreen:self];
 }
-
 
 - (void)mouseEntered:(NSEvent *)theEvent {
     pressedState = NO;
@@ -126,7 +127,9 @@ static const int FULLSCREEN_BUTTON_TAG = 1004;
 -(void)updateButtonStates{
     if (self == nil)
         return;
-    if (activeState) {
+    if (pressedState) {
+        [self setImage:pressed];
+    } else if (activeState) {
         if (hoverState) {
             [self setImage:hover];
         } else {

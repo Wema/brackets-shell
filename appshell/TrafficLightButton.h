@@ -27,11 +27,11 @@
     NSImage *inactive;
     NSImage *active;
     NSImage *hover;
-    NSImage *press;
+    NSImage *pressed;
     NSImage *dirtyInactive;
     NSImage *dirtyActive;
     NSImage *dirtyHover;
-    NSImage *dirtyPress;
+    NSImage *dirtyPressed;
     
     BOOL activeState;
     BOOL hoverState;

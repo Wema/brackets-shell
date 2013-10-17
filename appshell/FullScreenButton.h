@@ -27,7 +27,7 @@
     NSImage *inactive;
     NSImage *active;
     NSImage *hover;
-    NSImage *press;
+    NSImage *pressed;
     
     BOOL activeState;
     BOOL hoverState;
