@@ -114,6 +114,7 @@ void ClientHandler::CloseMainWindow() {
 - (void)setWindow:(NSWindow*)window;
 - (void)setFullScreenButtonView:(NSView*)view;
 - (void)addCustomDrawHook:(NSView*)contentView;
+- (BOOL)isFullScreenSupported;
 @end
 
 
@@ -209,25 +210,6 @@ Class GetPopuplWindowFrameClass() {
   clientHandler->DispatchCloseToNextBrowser();
 }
 
-
--(void)windowDidResize:(NSNotification *)notification 
-{
-#ifdef DARK_UI
-    NSView* themeView = [[window contentView] superview];
-    NSRect  parentFrame = [themeView frame];
-    
-    NSRect oldFrame = [fullScreenButtonView frame];
-    NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
-                                 parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
-                                 oldFrame.size.width,                                  // width
-                                 oldFrame.size.height);
-    
-    
-   [fullScreenButtonView setFrame:newFrame];
-   [themeView setNeedsDisplay:YES];
-#endif
-}
-
 - (void)addCustomDrawHook:(NSView*)contentView
 {
     NSView* themeView = [contentView superview];
@@ -276,6 +258,11 @@ Class GetPopuplWindowFrameClass() {
   isReallyClosing = true;
 }
 
+- (BOOL)isFullScreenSupported {
+  SInt32 version;
+  Gestalt(gestaltSystemVersion, &version);
+  return (version >= 0x1070);
+}
 
 - (void)setFullScreenButtonView:(NSView *)view {
   fullScreenButtonView = view;
@@ -294,6 +281,26 @@ Class GetPopuplWindowFrameClass() {
 #endif
 }
 
+
+-(void)windowDidResize:(NSNotification *)notification
+{
+#ifdef DARK_UI
+    if ([self isFullScreenSupported]) {
+        NSView* themeView = [[window contentView] superview];
+        NSRect  parentFrame = [themeView frame];
+        
+        NSRect oldFrame = [fullScreenButtonView frame];
+        NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
+                                     parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
+                                     oldFrame.size.width,                                  // width
+                                     oldFrame.size.height);
+        
+        
+        [fullScreenButtonView setFrame:newFrame];
+        [themeView setNeedsDisplay:YES];
+    }
+#endif
+}
 
 - (void)windowDidExitFullScreen:(NSNotification *)notification {
 #ifdef DARK_UI
@@ -332,20 +339,22 @@ Class GetPopuplWindowFrameClass() {
 #endif
     
 #ifdef DARK_UI
-    windowButton = [theWin standardWindowButton:NSWindowFullScreenButton];
-    [windowButton setHidden:YES];
+    if ([self isFullScreenSupported]) {
+        windowButton = [theWin standardWindowButton:NSWindowFullScreenButton];
+        [windowButton setHidden:YES];
     
-    FullScreenViewController     *fsController = [[FullScreenViewController alloc] init];
-    if ([NSBundle loadNibNamed: @"FullScreen" owner: fsController])
-    {
-        NSRect oldFrame = [fsController.view frame];
-        NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
-                                     parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
-                                     oldFrame.size.width,                                  // width
-                                     oldFrame.size.height);                                // height
-        [fsController.view setFrame:newFrame];
-        [themeView addSubview:fsController.view];
-        [self setFullScreenButtonView:fsController.view];
+        FullScreenViewController     *fsController = [[FullScreenViewController alloc] init];
+        if ([NSBundle loadNibNamed: @"FullScreen" owner: fsController])
+        {
+            NSRect oldFrame = [fsController.view frame];
+            NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
+                                         parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
+                                         oldFrame.size.width,                                  // width
+                                         oldFrame.size.height);                                // height
+            [fsController.view setFrame:newFrame];
+            [themeView addSubview:fsController.view];
+            [self setFullScreenButtonView:fsController.view];
+        }
     }
 #endif
     
@@ -464,20 +473,22 @@ void ClientHandler::PopupCreated(CefRefPtr<CefBrowser> browser) {
 #endif
       
 #ifdef DARK_UI
-      windowButton = [theWin standardWindowButton:NSWindowFullScreenButton];
-      [windowButton setHidden:YES];
+      if ([delegate isFullScreenSupported]) {
+          windowButton = [theWin standardWindowButton:NSWindowFullScreenButton];
+          [windowButton setHidden:YES];
       
-      FullScreenViewController     *fsController = [[FullScreenViewController alloc] init];
-      if ([NSBundle loadNibNamed: @"FullScreen" owner: fsController])
-      {
-          NSRect oldFrame = [fsController.view frame];
-          NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
-                                       parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
-                                       oldFrame.size.width,                                  // width
-                                       oldFrame.size.height);                                // height
-          [fsController.view setFrame:newFrame];
-          [themeView addSubview:fsController.view];
-          [delegate setFullScreenButtonView:fsController.view];
+          FullScreenViewController     *fsController = [[FullScreenViewController alloc] init];
+          if ([NSBundle loadNibNamed: @"FullScreen" owner: fsController])
+          {
+              NSRect oldFrame = [fsController.view frame];
+              NSRect newFrame = NSMakeRect(parentFrame.size.width - oldFrame.size.width - 4,	// x position
+                                           parentFrame.size.height - oldFrame.size.height - kTrafficLightsViewY,   // y position
+                                           oldFrame.size.width,                                  // width
+                                           oldFrame.size.height);                                // height
+              [fsController.view setFrame:newFrame];
+              [themeView addSubview:fsController.view];
+              [delegate setFullScreenButtonView:fsController.view];
+          }
       }
 #endif
 
