@@ -630,12 +630,13 @@ Class GetShellWindowFrameClass() {
 
   settings.web_security = STATE_DISABLED;
 
-    
+#ifdef DARK_INITIAL_PAGE
   // Avoid white flash at startup or refresh by making this the default
   // CSS.
   // 'aHRtbCxib2R5e2JhY2tncm91bmQ6cmdiYSgxMDksIDExMSwgMTEyLCAxKTt9' stands for 'html,body{background:rgba(109, 111, 112, 1);}'.
   const char* strCss = "data:text/css;charset=utf-8;base64,aHRtbCxib2R5e2JhY2tncm91bmQ6cmdiYSgxMDksIDExMSwgMTEyLCAxKTt9";
   CefString(&settings.user_style_sheet_location).FromASCII(strCss);
+#endif
     
   window_info.SetAsChild(contentView, 0, 0, content_rect.size.width, content_rect.size.height);
   
